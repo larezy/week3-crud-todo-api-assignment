@@ -1,10 +1,11 @@
+require("dotenv").config();
 const express = require('express');
 const app = express();
 app.use(express.json()); // Parse JSON bodies
 
 let todos = [
-  { id: 1, task: 'Learn Node.js', completed: false },
-  { id: 2, task: 'Build CRUD API', completed: false },
+  { id: 1, task: 'Learn Node.js', completed: true },
+  { id: 2, task: 'Build CRUD API', completed: true },
 ];
 
 // GET All – Read
@@ -14,6 +15,8 @@ app.get('/todos', (req, res) => {
 
 // POST New – Create
 app.post('/todos', (req, res) => {
+  const {task, completed}= req.body;
+  if(!task) return res.status(400).json({error: `task field required!!!`});
   const newTodo = { id: todos.length + 1, ...req.body }; // Auto-ID
   todos.push(newTodo);
   res.status(201).json(newTodo); // Echo back
@@ -22,6 +25,7 @@ app.post('/todos', (req, res) => {
 // PATCH Update – Partial
 app.patch('/todos/:id', (req, res) => {
   const todo = todos.find((t) => t.id === parseInt(req.params.id)); // Array.find()
+  console.log(todo);
   if (!todo) return res.status(404).json({ message: 'Todo not found' });
   Object.assign(todo, req.body); // Merge: e.g., {completed: true}
   res.status(200).json(todo);
@@ -37,14 +41,34 @@ app.delete('/todos/:id', (req, res) => {
   res.status(204).send(); // Silent success
 });
 
+//completed
 app.get('/todos/completed', (req, res) => {
   const completed = todos.filter((t) => t.completed);
   res.json(completed); // Custom Read!
 });
 
+//Get active todos
+app.get('/todos/active', (req, res) => {
+  const active = todos.filter(t => t.completed === false);
+  res.status(200).json(active);
+});
+
+
+//single_read
+app.get("/todos/:id", (req, res) => {
+  const singleTask = todos.find(t => t.id === parseInt(req.params.id));
+  if(!singleTask) return res.status(404).json({error: "Not found!"});
+  res.status(200).json(single);
+});
+
+
+
 app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Server error!' });
 });
 
-const PORT = 3002;
+
+ 
+
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server on port ${PORT}`));
