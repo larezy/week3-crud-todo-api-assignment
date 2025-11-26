@@ -1,7 +1,9 @@
 require("dotenv").config();
 const express = require('express');
 const app = express();
+const cors = require("cors");
 app.use(express.json()); // Parse JSON bodies
+app.use(cors("*"));
 
 let todos = [
   { id: 1, task: 'Learn Node.js', completed: true },
@@ -20,6 +22,14 @@ app.post('/todos', (req, res) => {
   const newTodo = { id: todos.length + 1, ...req.body }; // Auto-ID
   todos.push(newTodo);
   res.status(201).json(newTodo); // Echo back
+});
+
+//single_read
+app.get("/todos/:id", (req, res) => {
+  const singleTask = todos.find(t => t.id === parseInt(req.params.id));
+    
+  if(!singleTask) return res.status(404).json({error: "Not found!"});
+  res.status(200).json(singleTask);
 });
 
 // PATCH Update – Partial
@@ -54,21 +64,12 @@ app.get('/todos/active', (req, res) => {
 });
 
 
-//single_read
-app.get("/todos/:id", (req, res) => {
-  const singleTask = todos.find(t => t.id === parseInt(req.params.id));
-  if(!singleTask) return res.status(404).json({error: "Not found!"});
-  res.status(200).json(single);
-});
-
-
-
 app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Server error!' });
 });
 
 
  
-
+//listeing port
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server on port ${PORT}`));
